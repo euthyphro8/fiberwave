@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="100%" height="100%">
+  <defs>
+    <radialGradient id="bg-gradient">
+      <stop offset="7%" stop-color="#dff9f9"/>
+      <stop offset="10%" stop-color="#94efed"/>
+      <stop offset="20%" stop-color="#4084c8"/>
+      <stop offset="50%" stop-color="#5b297e"/>
+      <stop offset="100%" stop-color="#14041f"/>
+    </radialGradient>
+    <linearGradient gradientTransform="rotate(90 0 0) " id="sun-gradient">
+      <stop offset="10%" stop-color="yellow"/>
+      <!-- <stop offset="25%" stop-color="orange"/> -->
+      <stop offset="66%" stop-color="pink"/>
+    </linearGradient>
+    <mask id="sun-mask">
+      <rect fill="white" width="300" height="300" x="0" y="0"/>
+      <rect fill="black" width="300" x="0">
+        <animate attributeName="y" attributeType="XML" repeatCount="indefinite" dur="2.5" from="350.0" to="331.25"/>
+        <animate attributeName="height" attributeType="XML" repeatCount="indefinite" dur="2.5" from="18.75" to="16.40625"/>
+      </rect>
+      <rect fill="black" width="300" x="0">
+        <animate attributeName="y" attributeType="XML" repeatCount="indefinite" dur="2.5" from="331.25" to="312.5"/>
+        <animate attributeName="height" attributeType="XML" repeatCount="indefinite" dur="2.5" from="16.40625" to="14.0625"/>
+      </rect>
+      <rect fill="black" width="300" x="0">
+        <animate attributeName="y" attributeType="XML" repeatCount="indefinite" dur="2.5" from="312.5" to="293.75"/>
+        <animate attributeName="height" attributeType="XML" repeatCount="indefinite" dur="2.5" from="14.0625" to="11.71875"/>
+      </rect>
+      <rect fill="black" width="300" x="0">
+        <animate attributeName="y" attributeType="XML" repeatCount="indefinite" dur="2.5" from="293.75" to="275.0"/>
+        <animate attributeName="height" attributeType="XML" repeatCount="indefinite" dur="2.5" from="11.71875" to="9.375"/>
+      </rect>
+      <rect fill="black" width="300" x="0">
+        <animate attributeName="y" attributeType="XML" repeatCount="indefinite" dur="2.5" from="275.0" to="256.25"/>
+        <animate attributeName="height" attributeType="XML" repeatCount="indefinite" dur="2.5" from="9.375" to="7.03125"/>
+      </rect>
+      <rect fill="black" width="300" x="0">
+        <animate attributeName="y" attributeType="XML" repeatCount="indefinite" dur="2.5" from="256.25" to="237.5"/>
+        <animate attributeName="height" attributeType="XML" repeatCount="indefinite" dur="2.5" from="7.03125" to="4.6875"/>
+      </rect>
+      <rect fill="black" width="300" x="0">
+        <animate attributeName="y" attributeType="XML" repeatCount="indefinite" dur="2.5" from="237.5" to="218.75"/>
+        <animate attributeName="height" attributeType="XML" repeatCount="indefinite" dur="2.5" from="4.6875" to="2.34375"/>
+      </rect>
+      <rect fill="black" width="300" x="0">
+        <animate attributeName="y" attributeType="XML" repeatCount="indefinite" dur="2.5" from="218.75" to="200.0"/>
+        <animate attributeName="height" attributeType="XML" repeatCount="indefinite" dur="2.5" from="2.34375" to="0.0"/>
+      </rect>
+    </mask>
+    <filter width="140%" height="120%" x="-20%" y="-20%" id="sun-filter">
+      <feGaussianBlur in="SourceGraphic" result="sun-blur" stdDeviation="7"/>
+      <feMerge result="sun-filter-result">
+        <feMergeNode in="SourceGraphic"/>
+        <feMergeNode in="sun-blur"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <use transform="scale(-1,1) translate(300,0) " href="#vertical-grid-lines"/>
+  <g/>
+  <g>
+    <circle filter="url('#sun-filter')" mask="url('#sun-mask')" fill="url(#sun-gradient)" cx="150.0" cy="150.0" r="150"/>
+  </g>
+</svg>
