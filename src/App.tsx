@@ -1,9 +1,11 @@
 import * as THREE from 'three';
-import { Suspense, useRef, useMemo } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
+import { Suspense, useRef, useMemo, useEffect } from 'react';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { StatsGl } from '@react-three/drei';
 import { SimplexNoise } from 'three/examples/jsm/Addons.js';
 import mulberry32 from './utils/mulberry32';
+import { GridMaterial } from './GridMaterial';
+import { easing } from 'maath';
 
 const views = {
   default: {
@@ -92,9 +94,21 @@ function Sky() {
 }
 
 function Plane() {
+  const { viewport, size } = useThree();
   const mesh = useRef();
+  const grid = useRef();
+  const material = useRef();
   const vWidth = 256;
   const vHeight = 256;
+
+  // useEffect(() => {
+  //   if (!material.current) return;
+  //   material.current.onBeforeCompile = (shader) => {
+  //     console.log(shader.fragmentShader);
+  //     // console.log(shader.vertexShader);
+  //   };
+  // }, [material]);
+
   useFrame(({ clock }) => {
     const geometry = mesh.current?.geometry;
     if (!geometry) return;
@@ -107,11 +121,37 @@ function Plane() {
     geometry.attributes.position.needsUpdate = true;
     geometry.computeVertexNormals();
   });
+
+  useFrame((state, delta) => {
+    material.current.time += delta;
+    easing.damp3(material.current.pointer, state.pointer, 0.2, delta);
+  });
+
+  // useFrame(({ clock }) => {
+  //   const geometry = grid.current?.geometry;
+  //   if (!geometry) return;
+  //   const noise = getNoise();
+  //   const vertices = geometry.attributes.position.array;
+  //   const offset = clock.elapsedTime * 100;
+  //   for (let i = 0; i <= vertices.length; i += 3) {
+  //     vertices[i + 2] = noise(vertices[i], vertices[i + 1], offset);
+  //   }
+  //   geometry.attributes.position.needsUpdate = true;
+  //   geometry.computeVertexNormals();
+  // });
   return (
-    <mesh ref={mesh} position={[0, 0, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-      <planeGeometry args={[5000, 3000, vWidth, vHeight]} />
-      <meshLambertMaterial color="#1b1424" />
-    </mesh>
+    <group>
+      {/* <gridHelper ref={grid} args={[3000, 100, '#ffffff', '#bbb']} /> */}
+      <mesh ref={mesh} position={[0, 0, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[3000, 3000, vWidth, vHeight]} />
+        {/* <meshLambertMaterial ref={material} color="#1b1424" /> */}
+        <gridMaterial
+          ref={material}
+          key={GridMaterial.key}
+          resolution={[size.width * viewport.dpr, size.height * viewport.dpr]}
+        />
+      </mesh>
+    </group>
   );
 }
 
