@@ -1,10 +1,8 @@
 import * as THREE from 'three';
-import { Suspense, useRef, useMemo, useEffect } from 'react';
+import { Suspense, useRef, useMemo } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { StatsGl } from '@react-three/drei';
-import { SimplexNoise } from 'three/examples/jsm/Addons.js';
-import mulberry32 from './utils/mulberry32';
-import { GridMaterial } from './GridMaterial';
+import { GridMaterial } from './terrain/Material';
 import { easing } from 'maath';
 
 const views = {
@@ -25,6 +23,11 @@ const views = {
     position: [300, 500, 1500],
     lookAt: [0, -300, -1500],
   },
+  bikeView: {
+    fov: 50,
+    position: [100, 220, 300],
+    lookAt: [0, 40, 0],
+  },
 };
 export default function App() {
   const camera = useMemo(() => {
@@ -39,9 +42,10 @@ export default function App() {
       <div id="canvas-container">
         <Canvas dpr={[1, 2]} camera={camera}>
           <Suspense fallback={null}>
-            <Plane />
+            <Terrain />
             <Sky />
             <Sun />
+            <Bike />
           </Suspense>
           <StatsGl />
         </Canvas>
@@ -66,16 +70,16 @@ export default function App() {
 function Sun() {
   const mesh = useRef();
   const light = useRef();
-  useFrame(({ clock }) => {
-    const time = Math.sin(clock.elapsedTime / 10) * 1000;
-    mesh.current.position.y = -300 + time;
-    light.current.position.y = -300 + time;
-  });
+  // useFrame(({ clock }) => {
+  //   const time = Math.sin(clock.elapsedTime / 10) * 1000;
+  //   mesh.current.position.y = -300 + time;
+  //   light.current.position.y = -300 + time;
+  // });
   return (
     <>
-      <directionalLight ref={light} position={[0, 300, -3000]} args={['#f6c7d9', 100]} castShadow={false} />
-      <mesh ref={mesh} position={[0, -300, -3000]}>
-        <sphereGeometry args={[1200, 32, 32]} />
+      <directionalLight ref={light} position={[0, 300, -3500]} args={['#f6c7d9', 100]} castShadow={false} />
+      <mesh ref={mesh} position={[0, -300, -3000]} scale={[1.2, 1, 1]}>
+        <circleGeometry args={[1200, 64]} />
         <meshBasicMaterial color="#cc5869" fog={false} />
       </mesh>
     </>
@@ -93,58 +97,19 @@ function Sky() {
   );
 }
 
-function Plane() {
+function Terrain() {
   const { viewport, size } = useThree();
-  const mesh = useRef();
-  const grid = useRef();
   const material = useRef();
-  const vWidth = 256;
-  const vHeight = 256;
-
-  // useEffect(() => {
-  //   if (!material.current) return;
-  //   material.current.onBeforeCompile = (shader) => {
-  //     console.log(shader.fragmentShader);
-  //     // console.log(shader.vertexShader);
-  //   };
-  // }, [material]);
-
-  useFrame(({ clock }) => {
-    const geometry = mesh.current?.geometry;
-    if (!geometry) return;
-    const noise = getNoise();
-    const vertices = geometry.attributes.position.array;
-    const offset = clock.elapsedTime * 100;
-    for (let i = 0; i <= vertices.length; i += 3) {
-      vertices[i + 2] = noise(vertices[i], vertices[i + 1], offset);
-    }
-    geometry.attributes.position.needsUpdate = true;
-    geometry.computeVertexNormals();
-  });
 
   useFrame((state, delta) => {
-    material.current.time += delta;
+    material.current.time += delta * 5;
     easing.damp3(material.current.pointer, state.pointer, 0.2, delta);
   });
 
-  // useFrame(({ clock }) => {
-  //   const geometry = grid.current?.geometry;
-  //   if (!geometry) return;
-  //   const noise = getNoise();
-  //   const vertices = geometry.attributes.position.array;
-  //   const offset = clock.elapsedTime * 100;
-  //   for (let i = 0; i <= vertices.length; i += 3) {
-  //     vertices[i + 2] = noise(vertices[i], vertices[i + 1], offset);
-  //   }
-  //   geometry.attributes.position.needsUpdate = true;
-  //   geometry.computeVertexNormals();
-  // });
   return (
     <group>
-      {/* <gridHelper ref={grid} args={[3000, 100, '#ffffff', '#bbb']} /> */}
-      <mesh ref={mesh} position={[0, 0, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[3000, 3000, vWidth, vHeight]} />
-        {/* <meshLambertMaterial ref={material} color="#1b1424" /> */}
+      <mesh position={[0, 0, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[3000, 3000, 1024, 1024]} />
         <gridMaterial
           ref={material}
           key={GridMaterial.key}
@@ -155,26 +120,34 @@ function Plane() {
   );
 }
 
-function getNoise() {
-  // const scales = [200, 40];
-  // const smoothing = [400, 90];
-  const scales = [200, 200, 40];
-  const smoothing = [1000, 400, 90];
-
-  const prng = mulberry32(0xdeadbeef);
-  const perlin = new SimplexNoise({ random: prng });
-  return function (x: number, y: number, offset: number) {
-    let result = 0;
-    for (let i = 0; i < scales.length; i++) {
-      result += scales[i] * perlin.noise(x / smoothing[i], (y + offset) / smoothing[i]);
-    }
-    return valleyDist(x) * (result + 300);
-    // return result;
-  };
+function Bike() {
+  const bodyColor = '#000000';
+  return (
+    <group position={[0, 13, 600]}>
+      <mesh position={[0, 0, 0]}>
+        <boxGeometry args={[26, 26, 100]} />
+        <meshBasicMaterial color={bodyColor} />
+      </mesh>
+      <mesh position={[0, 0, -50]} scale={[0.9, 1, 1]}>
+        <sphereGeometry args={[24, 16, 16]} />
+        <meshBasicMaterial color={bodyColor} />
+      </mesh>
+      <mesh position={[0, 0, 50]} scale={[0.9, 1, 1]}>
+        <sphereGeometry args={[24, 16, 16]} />
+        <meshBasicMaterial color={bodyColor} />
+      </mesh>
+      <group position={[0, 0, 50]}>
+        <BikeTrail />
+      </group>
+    </group>
+  );
 }
 
-function valleyDist(x: number) {
-  const a = -0.4;
-  const b = -0.0000004;
-  return Math.exp(b * (x / a) ** 2) / (a * Math.sqrt(2 * Math.PI)) + 1;
+function BikeTrail() {
+  return (
+    <mesh position={[0, 0, 1000]} rotation={[Math.PI / 2, Math.PI / 2, 0]}>
+      <boxGeometry args={[30, 2000, 1]} />
+      <meshBasicMaterial color="#89672d" />
+    </mesh>
+  );
 }
