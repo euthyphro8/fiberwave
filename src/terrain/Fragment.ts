@@ -16,13 +16,15 @@ const terrainFragment = /*glsl*/ `
     }
 
     vec2 gridSize = vec2(1000., 1000.);
-    vec2 gridPitch  = vec2(10., 10.);
-    vec2 gridThickness = vec2(1., 1.);
+    vec2 gridPitch  = vec2(10., 5.);
+    vec2 gridThickness = vec2(1., 0.5);
     void main() {
         vec2 gridPos = mod(vec2(vPos.x, vPos.y + (time / 30.)) * gridSize, gridPitch);
         vec2 inGrid = any(lessThan(gridPos, gridThickness)) ? vec2(1.0, 1.0) : vec2(0.0, 1.0);
         vec3 color = palette(vUv.y + time / 30.);
         gl_FragColor = vec4(color.rb, 1., 1.0) * inGrid.xxxy;
+        // vec3 color = palette(vUv.y + time / 40.);
+        // gl_FragColor = vec4(color.br, .6, 1. );
     }
 `;
 export default terrainFragment;

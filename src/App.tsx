@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Suspense, useRef, useMemo } from 'react';
+import { Suspense, useRef, useMemo, useEffect, useCallback, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { StatsGl } from '@react-three/drei';
 import { GridMaterial } from './terrain/Material';
@@ -28,11 +28,18 @@ const views = {
     position: [100, 220, 300],
     lookAt: [0, 40, 0],
   },
+  vanishing: {
+    fov: 160,
+    position: [0, 200, 1200],
+    // lookAt: [0, 0, 0],
+    lookAt: [0, -300, -1500],
+  },
 };
 export default function App() {
   const camera = useMemo(() => {
-    const view = views.sideView;
+    const view = views.vanishing;
     const c = new THREE.PerspectiveCamera(view.fov, window.innerWidth / window.innerHeight, 0.1, 5000);
+    // const ca = new THREE.OrthographicCamera()
     c.position.set(view.position[0], view.position[1], view.position[2]);
     c.lookAt(view.lookAt[0], view.lookAt[1], view.lookAt[2]);
     return c;
@@ -45,7 +52,6 @@ export default function App() {
             <Terrain />
             <Sky />
             <Sun />
-            <Bike />
           </Suspense>
           <StatsGl />
         </Canvas>
@@ -101,8 +107,32 @@ function Terrain() {
   const { viewport, size } = useThree();
   const material = useRef();
 
+  const [scroll, setScroll] = useState(0);
+
+  const updateScroll = useCallback(
+    (event) => {
+      // if (window.pageYOffset) {
+      //   const delta = Math.sign(window.pageYOffset) * 10.0
+      //   const val = Math.max(0, window.pageYOffset + delta)
+      //   setState({ scrollTop: val })
+      // } else {
+      //   console.log('zero', window.pageYOffset)
+      // }
+      console.log(event);
+      setScroll((oldScroll) => oldScroll + event.deltaY);
+    },
+    [setScroll],
+  );
+
+  useEffect(() => {
+    console.log('subscribed to wheelEvent');
+    window.addEventListener('mousewheel', updateScroll);
+    return () => window.removeEventListener('scroll', updateScroll);
+  }, [updateScroll]);
+
   useFrame((state, delta) => {
-    material.current.time += delta * 5;
+    // material.current.time += delta * 1;
+    material.current.time = scroll / 5000;
     easing.damp3(material.current.pointer, state.pointer, 0.2, delta);
   });
 
